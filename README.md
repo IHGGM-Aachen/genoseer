@@ -13,7 +13,7 @@ If you find this code helpful in your research, please consider citing our paper
 
 ### Installation and Usage
 
-In order to get up and running with this project, follow these steps:
+In order to get up and running with this project, follow these steps (you can test these steps with the [sample structures](./src/data/structures/) and default [configurations](./src/configs/) provided):
 
 1. Clone the repository in your local environment.
 
