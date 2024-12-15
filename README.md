@@ -20,7 +20,7 @@ In order to get up and running with this project, follow these steps (you can te
 2. Navigate to the project directory using the terminal.
 
 3. Execute the following command, which uses a [Makefile](./Makefile)
-   to create a Python virtual environment (`venv`), activates the `venv`, and then installs necessary dependencies from the [requirements.txt](./requirements.txt) file:
+   to create a Python virtual environment (`venv`), activates the `venv`, and then installs necessary dependencies from the [requirements.txt](./requirements.txt) file. NOTE: You can also just copy the commands from the Makefile and run it in your terminal.
 
    ```
    make create_env
