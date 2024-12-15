@@ -136,3 +136,9 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+.DS_Store
+
+# Structure Data
+*.pdb
+*.pt
