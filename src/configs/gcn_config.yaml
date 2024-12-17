@@ -1,0 +1,20 @@
+# Dataset construction
+dataset_name: sample_dataset_residue
+input_dir_pdbs: ./src/data/sample_structures
+output_path_datasets: ./src/data
+num_cores: 16
+chunk_size: 64
+
+# Model training
+num_layers: 3
+out_channels: 128
+epochs: 20
+batch_size: 32
+lr: 0.005
+early_stop_patience: 3
+scope: residue
+model_output_dir: ./src/output/states
+model_name: gcn_graph_autoencoder
+
+# Model inference
+output_path_embeddings: ./src/output/embeddings/

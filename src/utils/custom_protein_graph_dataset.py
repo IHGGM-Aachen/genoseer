@@ -7,18 +7,17 @@ import torch
 
 
 class CustomProteinGraphDataset(ProteinGraphDataset):
-    """Custom ProteinGraphDataset class to adjust chunk size in case of too high memory pressure
-    """
-    def __init__(self, chunk_size: int=64, *args, **kwargs):
+    """Custom ProteinGraphDataset class to adjust chunk size in case of too high memory pressure"""
+
+    def __init__(self, chunk_size: int = 64, *args, **kwargs):
         self.chunk_size = chunk_size
         super().__init__(*args, **kwargs)
-        
+
     def process(self):
         """Processes structures from files into PyTorch Geometric Data."""
         # Preprocess PDB files
         if self.pdb_transform:
             self.transform_pdbs()
-
 
         # Chunk dataset for parallel processing
         def divide_chunks(l: ty.List[str], n: int = 2) -> ty.Generator:

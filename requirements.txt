@@ -11,3 +11,5 @@ transformers==4.45.1
 accelerate==0.34.2
 pyarrow==17.0.0
 py3Dmol==2.4.0
+optuna==4.1.0
+pyyaml==6.0.2

@@ -1,0 +1,20 @@
+# Dataset construction
+dataset_name: sample_dataset_atomic
+input_dir_pdbs: ./src/data/sample_structures
+output_path_datasets: ./src/data
+num_cores: 16
+chunk_size: 32
+
+# Model training
+num_layers: 3
+out_channels: 256
+epochs: 1
+batch_size: 32
+lr: 0.005
+early_stop_patience: 3
+scope: atomic
+model_output_dir: ./src/output/states
+model_name: mpnn_graph_autoencoder
+
+# Model inference
+output_path_embeddings: ./src/output/embeddings/

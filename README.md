@@ -13,7 +13,7 @@ If you find this code helpful in your research, please consider citing our paper
 
 ### Installation and Usage
 
-In order to get up and running with this project, follow these steps (you can test these steps with the [sample structures](./src/data/structures/) and default [configurations](./src/configs/) provided):
+To quickly start using this project, follow these steps. You can test them with the provided [sample structures](./src/data/sample_structures/), [sample folds](./src/data/sample_folds/) and default [configurations](./src/configs/).
 
 1. Clone the repository in your local environment.
 
@@ -26,21 +26,23 @@ In order to get up and running with this project, follow these steps (you can te
    make create_env
    ```
 
-4. You can manipulate the training and inference configurations as per your needs using the provided yaml files ([training_gcn.yaml](./src/configs/training_gcn.yaml), [training_mpnn.yaml](./src/configs/training_mpnn.yaml)).
+4. Activate your venv
 
-5. To train the Residue Autoencoder, run:
+5. You can manipulate the training and inference configurations as per your needs using the provided yaml files ([gcn_config.yaml](./src/configs/gcn_config.yaml), [mpnn_config.yaml](./src/configs/mpnn_config.yaml)).
+
+6. To train the Residue Autoencoder, run:
 
    ```
    make train_residue_autoencoder
    ```
 
-6. Run inference on the trained Residue Autoencoder by executing:
+7. Run inference on the trained Residue Autoencoder by executing:
 
    ```
    make run_inference_residue_autoencoder
    ```
 
-7. Similarly, to train and run inference on the Atomic Autoencoder, run the following commands respectively:
+8. Similarly, to train and run inference on the Atomic Autoencoder, run the following commands respectively:
 
    ```
    make train_atomic_autoencoder
@@ -48,6 +50,11 @@ In order to get up and running with this project, follow these steps (you can te
 
    ```
    make run_inference_atomic_autoencoder
+   ```
+
+9. To make use of the embeddings for pathogenicity prediction using an Optuna optimized XGBoost Classifier feel free look into [optimize_train_and_run_xgboost.py](./src/optimize_train_and_run_xgboost.py) & [xgboost_config.yaml](./src/configs/xgboost_config.yaml) or run script directly with sample folds via:
+   ```
+   make optimize_train_and_run_xgboost
    ```
 
 ### Citation

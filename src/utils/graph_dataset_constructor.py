@@ -35,7 +35,7 @@ from graphein.protein.resi_atoms import (
 from .custom_protein_graph_dataset import CustomProteinGraphDataset
 
 
-BASE_ATOMS  = [
+BASE_ATOMS = [
     "C",
     "H",
     "O",
@@ -59,10 +59,9 @@ class GraphDatasetConstructor:
         Args:
             scope (str): Scope of the dataset, either 'residue' or 'atomic'.
         """
-        if scope not in ['residue', 'atomic']:
+        if scope not in ["residue", "atomic"]:
             raise ValueError("Scope must be either 'residue' or 'atomic'")
         self.scope = scope
-
 
     def __compute_advanced_graph_information(self, data):
         """Compute advanced graph information based on the given scope.
@@ -73,7 +72,7 @@ class GraphDatasetConstructor:
 
         Returns:
             _type_: The enriched graph data.
-        """        
+        """
         if self.scope == "residue":
             # Perform negative sampling for residue scope
             data.negative_edge_index = negative_sampling(
@@ -119,7 +118,12 @@ class GraphDatasetConstructor:
         return data
 
     def construct_or_load_dataset(
-        self, dataset_name: str, input_pdb_paths: list[str], output_path: str, num_cores: int, chunk_size: int
+        self,
+        dataset_name: str,
+        input_pdb_paths: list[str],
+        output_path: str,
+        num_cores: int,
+        chunk_size: int,
     ) -> CustomProteinGraphDataset:
         """Construct or load the dataset based on the given scope.
 
@@ -132,7 +136,7 @@ class GraphDatasetConstructor:
 
         Returns:
             _type_: The constructed dataset.
-        """        
+        """
 
         if self.scope == "residue":
             # Define edge construction functions for residue scope
@@ -181,10 +185,10 @@ class GraphDatasetConstructor:
             )
 
         elif self.scope == "atomic":
-            
+
             edge_const_func = {"edge_construction_functions": [add_atomic_edges]}
 
-            config = ProteinGraphConfig(**{**edge_const_func, 'granularity': 'atom'})
+            config = ProteinGraphConfig(**{**edge_const_func, "granularity": "atom"})
             convertor = GraphFormatConvertor(
                 src_format="nx",
                 dst_format="pyg",
