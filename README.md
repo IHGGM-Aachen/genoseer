@@ -1,6 +1,6 @@
 # Utilizing Protein Structure Graph Embeddings to Predict the Pathogenicity of Missense Variants
 
-This repository houses the code for the research paper "Utilizing protein structure graph embeddings to predict the pathogenicity of missense variants", authored by Martin Danner, Matthias Begemann1, Miriam Elbracht, Ingo Kurth, and Jeremias Krause. With this code, users can transform pdb protein structures into datasets suitable for machine learning especially to train two autoencoder models: "MPNN Graph Autoencoder" and "GCN Autoencoder". These trained models facilitate the generation of embeddings applicable in downstream analysis, like the prediction of pathogenicity.
+This repository houses the code for the research paper "Utilizing protein structure graph embeddings to predict the pathogenicity of missense variants", authored by Martin Danner, Matthias Begemann, Miriam Elbracht, Ingo Kurth, and Jeremias Krause. With this code, users can transform pdb protein structures into datasets suitable for machine learning especially to train two autoencoder models: "MPNN Graph Autoencoder" and "GCN Autoencoder". These trained models facilitate the generation of embeddings applicable in downstream analysis, like the prediction of pathogenicity.
 
 If you find this code helpful in your research, please consider citing our paper.
 
