@@ -106,9 +106,9 @@ To quickly start using this project, follow these steps. You can test them with 
 
 10. To make use of the embeddings for pathogenicity prediction using an Optuna optimized XGBoost Classifier feel free look into [optimize_train_and_run_xgboost.py](./src/optimize_train_and_run_xgboost.py) & [xgboost_config.yaml](./src/configs/xgboost_config.yaml) or run script directly with sample folds via:
    
-   ```
-   make optimize_train_and_run_xgboost
-   ```
+      ```
+      make optimize_train_and_run_xgboost
+      ```
 
 ### Citation
 
