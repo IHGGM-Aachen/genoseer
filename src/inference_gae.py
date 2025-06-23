@@ -115,10 +115,10 @@ if __name__ == "__main__":
         )
         model.load_state_dict(
             torch.load(
-                os.path.join(config["model_output_dir"], f"{config["model_name"]}.pt")
+                os.path.join(config["model_output_dir"], f"{config['model_name']}.pt")
             )
         )
-        logger.info(f"Loaded model states for {config["model_name"]}")
+        logger.info(f"Loaded model states for {config['model_name']}")
 
     elif config["scope"] == "atomic":
         num_features = ds_train[0].coords.size(1) + ds_train[0].atom_encoding.size(1)
@@ -127,10 +127,10 @@ if __name__ == "__main__":
         )
         model.load_state_dict(
             torch.load(
-                os.path.join(config["model_output_dir"], f"{config["model_name"]}.pt")
+                os.path.join(config["model_output_dir"], f"{config['model_name']}.pt")
             )
         )
-        logger.info(f"Loaded model states for {config["model_name"]}")
+        logger.info(f"Loaded model states for {config['model_name']}")
 
     # Move the model to GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
     df_embeddings.to_csv(
         os.path.join(
-            config["output_path_embeddings"], f"{config["scope"]}_embeddings.csv"
+            config["output_path_embeddings"], f"{config['scope']}_embeddings.csv"
         ),
         index=False,
     )

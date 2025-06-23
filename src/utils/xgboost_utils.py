@@ -21,38 +21,37 @@ def prepare_data(x: pd.DataFrame, y: pd.DataFrame) -> ty.Tuple[np.ndarray]:
         tuple: A tuple containing the features and target arrays.
     """
     # Encode and reshape feature columns
-    aa_ref_encoded = np.array(x["aa_ref_encoded"]).reshape(-1, 1)
-    aa_alt_encoded = np.array(x["aa_alt_encoded"]).reshape(-1, 1)
-    aa_position = np.array(x["AA_position"]).reshape(-1, 1)
-    cosine_distance_res = np.array(x["cosine_distance_res"]).reshape(-1, 1)
-    structural_embeddings_res_mut = np.vstack(
-        x["structural_embeddings_res_mt"].to_numpy()
-    )
-    structural_embeddings_res_wt = np.vstack(
-        x["structural_embeddings_res_wt"].to_numpy()
-    )
-    allele_frequency = np.array(x["AF"]).reshape(-1, 1)
-    constraint_metrics = np.array(x["mis.oe"]).reshape(-1, 1)
+    cosine_distance = np.array(x["cosine_distance"]).reshape(-1, 1)
+    structural_embeddings_mut = np.vstack(x["structural_embeddings_mt"].to_numpy())
+    structural_embeddings_wt = np.vstack(x["structural_embeddings_wt"].to_numpy())
+
+    node_cosine_distance = np.array(
+        x["cosine_distance_node_embedding_affected"]
+    ).reshape(-1, 1)
+    node_embeddings_mut = np.vstack(x["node_embedding_affected_mt"].to_numpy())
+    node_embeddings_wt = np.vstack(x["node_embedding_affected_wt"].to_numpy())
+
+    cadd = np.array(x["cadd"]).reshape(-1, 1)
 
     # Combine all features
     features = np.hstack(
         (
-            aa_ref_encoded,
-            aa_alt_encoded,
-            aa_position,
-            cosine_distance_res,
-            structural_embeddings_res_mut,
-            structural_embeddings_res_wt,
-            allele_frequency,
-            constraint_metrics,
+            cadd,
+            structural_embeddings_mut,
+            structural_embeddings_wt,
+            cosine_distance,
+            node_embeddings_mut,
+            node_embeddings_wt,
+            node_cosine_distance,
         )
     )
+
     target = np.array(y).reshape(-1, 1)
+
     return features, target
 
-    # Function to create training, validation, and testing datasets based on folding
 
-
+# Function to create training, validation, and testing datasets based on folding
 def create_folds(
     features_all_folds: ty.List[pd.DataFrame],
     labels_all_folds: ty.List[pd.DataFrame],
@@ -219,7 +218,12 @@ def optimize_hyperparameters(data, objective, n_trials: int = 10):
 
     # Fit model with best found parameters
     xgb_model_best = XGBClassifier(**study.best_params)
-    xgb_model_best.fit(data["train"][0], data["train"][1], verbose=True)
+    xgb_model_best.fit(
+        data["train"][0],
+        data["train"][1],
+        eval_set=[(data["val"][0], data["val"][1])],
+        verbose=True,
+    )
 
     # Predict and evaluate accuracy
     preds = xgb_model_best.predict(data["test"][0])

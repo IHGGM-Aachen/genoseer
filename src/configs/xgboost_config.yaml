@@ -1,5 +1,6 @@
 input_dir_folds: ./src/data/sample_folds
-trials: 100
+trials: 1
 scope: residue
-embedding_size: 256
+embedding_size: 128
 output_dir: ./src/output/plots
+hold_out_testset: ./src/data/sample_testset/hold_out_testset.parquet

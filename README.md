@@ -95,20 +95,20 @@ To quickly start using this project, follow these steps. You can test them with 
    ```
 
 9. Similarly, to train and run inference on the Atomic Autoencoder, run the following commands respectively:
-   
+
    ```
    make train_atomic_autoencoder
    ```
-   
+
    ```
    make run_inference_atomic_autoencoder
    ```
 
 10. To make use of the embeddings for pathogenicity prediction using an Optuna optimized XGBoost Classifier feel free look into [optimize_train_and_run_xgboost.py](./src/optimize_train_and_run_xgboost.py) & [xgboost_config.yaml](./src/configs/xgboost_config.yaml) or run script directly with sample folds via:
-   
-      ```
-      make optimize_train_and_run_xgboost
-      ```
+
+    ```
+    make optimize_train_and_test_xgboost
+    ```
 
 ### Citation
 

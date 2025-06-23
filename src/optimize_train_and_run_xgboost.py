@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pandas as pd
 import sklearn
-import statistics
 import matplotlib.pyplot as plt
 import argparse
 
@@ -12,9 +11,11 @@ from utils.xgboost_utils import (
     create_folds,
     optimize_hyperparameters,
     objective,
-    get_roc_auc,
+    prepare_data,
 )
 from utils.parse_config import _parse_config
+
+from xgboost import XGBClassifier
 
 
 def setup_logging():
@@ -37,7 +38,7 @@ def setup_logging():
 
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Create protein graph dataset.")
+    parser = argparse.ArgumentParser(description="Train and validate XGBoost Model.")
     parser.add_argument("--config_path", type=str, help="Path to the config yaml")
     return parser.parse_args()
 
@@ -62,38 +63,29 @@ if __name__ == "__main__":
     logger.info("Loading folds!")
     for i, fold_file in enumerate(fold_files):
         df_fold = pd.read_parquet(fold_file)
-        # Create dictionaries for encoding categorical features and tartget
-        aa_encoding_dict = {k: v for v, k in enumerate(df_fold.ref_AA.unique())}
-        # nuc_encoding_dict = {k:v for v, k in enumerate(df_clinvar.ref.unique())}
-        pg_patho_encoding_dict = {k: v for v, k in enumerate(["Benign", "Pathogenic"])}
-        # Encoding of categorical features
-        df_fold["aa_ref_encoded"] = df_fold["ref_AA"].map(aa_encoding_dict)
-        df_fold["aa_alt_encoded"] = df_fold["alt_AA"].map(aa_encoding_dict)
-        df_fold["target"] = df_fold["DMS_bin_score"].map(pg_patho_encoding_dict)
 
         logger.info(f"Distribution of pathogenic variants in fold {i+1}")
         dist_patho = np.round(
-            len(df_fold[df_fold["DMS_bin_score"] == "Pathogenic"]) / len(df_fold) * 100,
+            len(df_fold[df_fold["target"] == 1]) / len(df_fold) * 100,
             2,
         )
         logger.info(f"{dist_patho} %")
 
         logger.info(f"Distribution of benign variants in fold {i+1}")
         dist_benign = np.round(
-            len(df_fold[df_fold["DMS_bin_score"] == "Benign"]) / len(df_fold) * 100, 2
+            len(df_fold[df_fold["target"] == 0]) / len(df_fold) * 100, 2
         )
         logger.info(f"{dist_benign} %")
 
         X = df_fold[
             [
-                "aa_ref_encoded",
-                "aa_alt_encoded",
-                "AA_position",
-                "cosine_distance_res",
-                "structural_embeddings_res_mt",
-                "structural_embeddings_res_wt",
-                "AF",
-                "mis.oe",
+                "cosine_distance",
+                "structural_embeddings_wt",
+                "structural_embeddings_mt",
+                "cadd",
+                "node_embedding_affected_wt",
+                "node_embedding_affected_mt",
+                "cosine_distance_node_embedding_affected",
             ]
         ]
         y = df_fold["target"]
@@ -149,6 +141,9 @@ if __name__ == "__main__":
 
         logger.info(f"Best parameters for fold {i+1}: {best_params}")
         logger.info(f"Best accuracy for fold {i+1}: {best_accuracy}")
+        
+        if i == 1:
+            break
 
     # Calculate average hyperparameters across all folds
     average_params_across_folds = {}
@@ -166,64 +161,91 @@ if __name__ == "__main__":
 
     logger.info(f"Average parameters across folds: {average_params_across_folds}")
 
-    (
-        fpr_average_per_fold,
-        tpr_average_per_fold,
-        roc_auc_average_per_fold,
-        y_pred_proba_average_per_fold,
-    ) = [[] for _ in range(4)]
 
-    # Calculate ROC AUC for each fold using average parameters
-    for i, data_fold in enumerate(data_folds):
-        logger.info(f"Starting to evaluate ROC AUC for fold {i+1}!")
-        fpr_average, tpr_average, roc_auc_average, y_pred_proba_average = get_roc_auc(
-            average_params_across_folds, data_fold
-        )
-        fpr_average_per_fold.append(fpr_average)
-        tpr_average_per_fold.append(tpr_average)
-        roc_auc_average_per_fold.append(roc_auc_average)
-        y_pred_proba_average_per_fold.append(y_pred_proba_average)
+    ######################## Final Testing #######################
+    # Load hold out dataset for testing
+    logger.info("Starting to test XGBoost Model on hold out testset.")
+    
+    df_test_hold_out = pd.read_parquet(config["hold_out_testset"])
 
-    # Concatenating predictions and calculating the mean ROC curve across all folds
-    test_data_accross_all_folds_concat = np.concatenate(
-        [data_fold["test"][1] for data_fold in data_folds]
+    X_test_hold_out = df_test_hold_out[
+        [
+            "cosine_distance",
+            "structural_embeddings_wt",
+            "structural_embeddings_mt",
+            "cadd",
+            "node_embedding_affected_wt",
+            "node_embedding_affected_mt",
+            "cosine_distance_node_embedding_affected",
+        ]
+    ]
+    y_test_hold_out = df_test_hold_out["target"]
+
+    # Prepare hold out dataset for testing
+    X_test_hold_out, y_test_hold_out = prepare_data(X_test_hold_out, y_test_hold_out)
+
+    # Prepare data from folds for training and validation of averaged XGBoost model
+    X_train = pd.concat(features_all_folds[:-1])
+    X_val = features_all_folds[-1]
+
+    y_train = pd.concat(labels_all_folds[:-1])
+    y_val = labels_all_folds[-1]
+    
+    X_train, y_train = prepare_data(X_train, y_train)
+    X_val, y_val = prepare_data(X_val, y_val)
+
+    xgb_model_average_params = XGBClassifier(
+        **average_params_across_folds, device="cuda", predictor="gpu_predictor"
     )
-    y_pred_proba_concat = np.concatenate(y_pred_proba_average_per_fold, axis=0)
-    fpr_mean_accross_all_folds, tpr_mean_accross_all_folds, _ = (
-        sklearn.metrics.roc_curve(
-            test_data_accross_all_folds_concat, y_pred_proba_concat[:, 1]
-        )
+    xgb_model_average_params.fit(
+        X_train, y_train, eval_set=[(X_val, y_val)], verbose=True
     )
 
-    # Calculate the area under the ROC curve (AUC)
-    roc_auc_average_mean = sklearn.metrics.auc(
-        fpr_mean_accross_all_folds, tpr_mean_accross_all_folds
+    # Get the model predictions for the test set
+    y_preds = xgb_model_average_params.predict(X_test_hold_out)
+    logger.info("Classification Report for Model Predictions on Test Set:")
+    sklearn.metrics.classification_report(y_test_hold_out, y_preds)
+
+    # Calculate probabilities
+    y_preds_proba = xgb_model_average_params.predict_proba(X_test_hold_out)
+
+    # Calculate the false positive rate, true positive rate, and thresholds
+    fpr, tpr, thresholds = sklearn.metrics.roc_curve(
+        y_test_hold_out, y_preds_proba[:, 1]
     )
 
-    colors = ["#332288", "#117733", "#44AA99", "#88CCEE", "#CC6677"]
-    fig_title = f"ROC Curve ({config["scope"]} {config["embedding_size"]})"
-    fig_filename = f"roc_curve_{config["scope"]}_{config["embedding_size"]}.png"
+    # Calculate and log the area under the ROC curve (AUC)
+    roc_auc = sklearn.metrics.auc(fpr, tpr)
+    logger.info(f"Area Under the ROC Curve (AUC): {roc_auc}")
+
+    # Calculate and log the Matthews Correlation Coefficient
+    mcc_value = sklearn.metrics.matthews_corrcoef(y_test_hold_out, y_preds)
+    logger.info(f"Matthews Correlation Coefficient: {mcc_value}")
+
+    # Calculate and log the accuracy
+    accuracy = sklearn.metrics.accuracy_score(y_test_hold_out, y_preds)
+    logger.info(f"Accuracy Score {accuracy}")
+
+    precision, recall, _ = sklearn.metrics.precision_recall_curve(
+        y_test_hold_out, y_preds_proba[:, 1]
+    )
+    average_precision = sklearn.metrics.average_precision_score(
+        y_test_hold_out, y_preds_proba[:, 1]
+    )
+    logger.info(f"Average Precision Score: {average_precision}")
+
+    fig_title = f"ROC Curve ({config['scope']} {config['embedding_size']})"
+    fig_filename = f"roc_curve_{config['scope']}_{config['embedding_size']}.png"
     # Plot all the ROC curves
     plt.figure(figsize=(8, 6))
-    for i, (fpr_average, tpr_average, roc_auc_average, color) in enumerate(
-        zip(
-            fpr_average_per_fold, tpr_average_per_fold, roc_auc_average_per_fold, colors
-        ),
-        start=1,
-    ):
-        plt.plot(
-            fpr_average,
-            tpr_average,
-            color=color,
-            label=f"ROC curve for fold {i} (AUC = {roc_auc_average:.2f})",
-        )
 
     plt.plot(
-        fpr_mean_accross_all_folds,
-        tpr_mean_accross_all_folds,
-        color="red",
-        label=f"ROC curve total (AUC = {roc_auc_average_mean:.2f})",
+        fpr,
+        tpr,
+        color="#332288",
+        label=f"ROC curve (AUC = {roc_auc:.2f})",
     )
+
     plt.plot([0, 1], [0, 1], color="red", linestyle="--", label="Random guess")
 
     plt.xlim([0.0, 1.0])
@@ -234,7 +256,26 @@ if __name__ == "__main__":
     plt.legend(loc="lower right")
     plt.savefig(os.path.join(config["output_dir"], fig_filename), dpi=400)
 
-    mean_roc_auc = statistics.mean(roc_auc_average_per_fold)
-    std_roc_auc = np.std(roc_auc_average_per_fold)
-    logger.info(f"Mean ROC AUC across all folds: {mean_roc_auc:.2f}")
-    logger.info(f"Standard Deviation across all folds: {std_roc_auc:.2f}")
+    fig_title = f"Precision-Recall Curve ({config['scope']} {config['embedding_size']})"
+    fig_filename = (
+        f"precision_recall_curve_{config['scope']}_{config['embedding_size']}.png"
+    )
+    # Plot all the ROC curves
+    plt.figure(figsize=(8, 6))
+
+    plt.plot(
+        recall,
+        precision,
+        color="#332288",
+        label=f"{config['scope']} {config['embedding_size']}",
+    )
+
+    plt.plot([0, 1], [0.5, 0.5], color="red", linestyle="--", label="Random guess")
+    plt.xlim([0.0, 1.05])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.title("Precision-Recall Curve")
+    plt.legend(loc="upper right")
+
+    plt.savefig(os.path.join(config["output_dir"], fig_filename), dpi=400)
