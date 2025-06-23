@@ -1,5 +1,5 @@
 input_dir_folds: ./src/data/sample_folds
-trials: 1
+trials: 10
 scope: residue
 embedding_size: 128
 output_dir: ./src/output/plots
