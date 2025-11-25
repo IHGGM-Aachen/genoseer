@@ -22,6 +22,12 @@ In our work within Databricks, we utilized the following setups for predicting P
    - Machine: [Standard NV36ads A10 v5](https://learn.microsoft.com/en-us/azure/virtual-machines/sizes/gpu-accelerated/nvadsa10v5-series?tabs=sizebasic)
    - Specifications: 440 GB Memory, 1 GPU
    - Databricks Runtime Version: 15.4 LTS ML (includes Apache Spark 3.5.0, GPU support, Scala 2.12)
+  
+
+## Dataset
+The dataset used for training, validation and testing includes protein structures and metadata for both benign and pathogenic missense variants. It is provided on Hugging Face:
+[Protein Structure Pathogenicity Dataset](https://huggingface.co/datasets/martindanner/protein_structure_pathogenicity_dataset)
+
 
 ## Getting Started
 
@@ -114,7 +120,22 @@ To quickly start using this project, follow these steps. You can test them with 
 
 If you use the tool presented in this repository, please cite us:
 
+```bibtex
+@article{10.1093/nargab/lqaf097,
+    author = {Danner, Martin and Begemann, Matthias and Elbracht, Miriam and Kurth, Ingo and Krause, Jeremias},
+    title = {Utilizing protein structure graph embeddings to predict the pathogenicity of missense variants},
+    journal = {NAR Genomics and Bioinformatics},
+    volume = {7},
+    number = {3},
+    pages = {lqaf097},
+    year = {2025},
+    month = {07},
+    abstract = {Genetic variants can impact the structure of the corresponding protein, which can have detrimental effects on protein function. While the effect of protein-truncating variants is often easier to evaluate, most genetic variants that affect the protein-coding region of the human genome are missense variants. These variants are mostly single nucleotide variants, which result in the exchange of a single amino acid. The effect on protein function of these variants can be challenging to deduce. To aid the interpretation of missense variants, a variety of bioinformatic algorithms have been developed, yet current algorithms rarely directly use the protein structure as a feature to consider. We developed a machine learning workflow that utilizes the protein-language-model ESMFold to predict the protein structure of missense variants, which is subsequently embedded using graph autoencoders. The generated embeddings are used in a classifier model, which predicts pathogenicity. We provide evidence that graph embeddings can be used for pathogenicity prediction and that they can be used to enhance the widely applied CADD score. Additionally, we explored different levels of abstraction of the graph embeddings and their influence on the classifier. Finally, we compare the utility of graph embeddings from different protein-folding models.},
+    issn = {2631-9268},
+    doi = {10.1093/nargab/lqaf097},
+    url = {https://doi.org/10.1093/nargab/lqaf097},
+    eprint = {https://academic.oup.com/nargab/article-pdf/7/3/lqaf097/63841947/lqaf097.pdf},
+}
+
 ```
-Utilizing protein structure graph embeddings to predict the pathogenicity of missense variants 
-Martin Danner, Matthias Begemann, Miriam Elbracht, Ingo Kurth, Jeremias Krause
-```
+
